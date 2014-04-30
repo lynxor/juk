@@ -7,9 +7,9 @@ run like this:
 
 > python game.py /path/to/bot1 /path/to/bot2 
 
-For interactive mode(player A):
+For interactive mode(player A): (#use --interactiveB for player B)
  
-> python2 game.py /path/.. /path2/ --interactiveA #use --interactiveB for player B
+> python2 game.py /path/.. /path2/ --interactiveA 
 
 
 For windows:
