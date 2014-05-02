@@ -5,6 +5,7 @@ HEIGHT = 22
 PILL = "."
 BONUS_PILL = "*"
 WALL = "#"
+POISON_PILL = "!"
 MAX_IDLE_MOVES = 50
 CENTER_POS = (9,10)
 

@@ -13,7 +13,7 @@ class Player:
 		self.game_state_file = join(folder, "game.state")
 		self._exec = "./run"
 		self.score = 0
-		self.pill = True  # keep track of the pill? Maybe later
+		self.has_pill = True  # keep track of the pill? Maybe later
 		self.score_unchanged = 0
 		self.interactive = interactive
 
@@ -51,7 +51,7 @@ class Player:
 		pill = False
 		
 		if move.startswith("P") and len(move) == 2:
-			pill = True
+			pill = self.has_pill 
 			new_pos = self.get_move_pos( pos, list(move)[1] )
 		else:
 			new_pos = self.get_move_pos(pos, move)
@@ -62,7 +62,8 @@ class Player:
 			new_state = set_value(new_pos, "A", current_state)
 			new_state = set_value(pos, " ", new_state)
 			if pill:
-				new_state = set_value(pos, "!", new_state)
+				new_state = set_value(pos, POISON_PILL, new_state)
+				self.has_pill = False
 			self.write_state(new_state)
 		else:
 			print "Invalid move specified"
@@ -91,8 +92,8 @@ class Player:
 		apos = position("A", new_state)
 		bpos = position("B", old_state)
 
-		print "fix_state " + str(apos) + " " + str(bpos) + str(old_state == new_state)
-		pill = value_at(apos, old_state) == '!'
+		# print "fix_state " + str(apos) + " " + str(bpos) + str(old_state == new_state)
+		pill = value_at(apos, old_state) == POISON_PILL
 
 		if apos == bpos:
 			fixed_state = set_value(CENTER_POS, "B", fixed_state)
