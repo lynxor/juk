@@ -6,6 +6,7 @@ PILL = "."
 BONUS_PILL = "*"
 WALL = "#"
 MAX_IDLE_MOVES = 50
+CENTER_POS = (9,10)
 
 #NBNBNBNB Remember to add 1 to index calculations because of \n 
 

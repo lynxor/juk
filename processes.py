@@ -39,6 +39,8 @@ class Player:
 
 		os.chdir(prev_path)
 		new_state = self.state()
+		self.fix_state(old_state, new_state)
+		
 		self.update_score(old_state, new_state)
 		return new_state
 
@@ -46,8 +48,30 @@ class Player:
 		print "Your move: (W,A,S,D) "
 		move = str(raw_input()).upper()
 		pos = position("A", current_state)  #AGAIN, always A
+		pill = False
+		
+		if move.startswith("P") and len(move) == 2:
+			pill = True
+			new_pos = self.get_move_pos( pos, list(move)[1] )
+		else:
+			new_pos = self.get_move_pos(pos, move)
+
+
+		#TODO: check for collisions and bombs
+		if self.valid_pos( new_pos, current_state):
+			new_state = set_value(new_pos, "A", current_state)
+			new_state = set_value(pos, " ", new_state)
+			if pill:
+				new_state = set_value(pos, "!", new_state)
+			self.write_state(new_state)
+		else:
+			print "Invalid move specified"
+			self.move_interactive(current_state)
+
+	def get_move_pos(self, pos, move):
 		x = pos[0]
 		y = pos[1]
+
 		if move == "W":
 			new_pos = (x, (y - 1) if y > 0 else HEIGHT - 1) 
 		elif move == "S":
@@ -56,15 +80,27 @@ class Player:
 			new_pos = (x - 1 if x > 0 else WIDTH -1, y) 
 		elif move == "D":
 			new_pos = (x + 1 if x < WIDTH -1 else 0, y)
+		return new_pos
 
-		if self.valid_pos( new_pos, current_state):
-			new_state = set_value(new_pos, "A", current_state)
-			new_state = set_value(pos, " ", new_state)
-			self.write_state(new_state)
-		else:
-			print "Invalid move specified"
-			self.move_interactive(current_state)
+	# intended for pos processing PERSISTENT
+	# Be lenient and fix state if bot does not handle collisions and poison pill chowing correctly
+	# (also use for interactive)
+	def fix_state(self, old_state, new_state):
+		fixed_state = new_state
 
+		apos = position("A", new_state)
+		bpos = position("B", old_state)
+
+		pill = value_at(apos, old_state) == '!'
+
+		if apos == bpos:
+			fixed_state = set_value(CENTER_POS, "B", fixed_state)
+		elif pill:
+			fixed_state = set_value(CENTER_POS, "A", fixed_state)
+			fixed_state = set_value(apos, " ", fixed_state)
+
+		self.write_state(fixed_state)
+		return fixed_state
 
 
 	def valid_pos(self, pos, state ):
