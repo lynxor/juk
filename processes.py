@@ -106,7 +106,6 @@ class Player:
 
 
 	def valid_pos(self, pos, state ):
-		print str(pos)
 		x = pos[0]
 		y = pos[1]
 		if not ((x >= 0 and x <= WIDTH - 1 ) and (y >= 0 and y <= HEIGHT)) :
