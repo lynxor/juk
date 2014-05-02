@@ -11,7 +11,8 @@ CENTER_POS = (9,10)
 
 def parse_state(state_string):
 	# print(list(state_string))
-	return [list(row) for row in state_string.split("\r\n")]  #WTF windows \r\n
+	split_by = "\r\n" if "\r\n" in state_string else "\n"
+	return [list(row) for row in state_string.split(split_by)]  #WTF windows \r\n
 
 def serialize_state(state):
 	return "\r\n".join(["".join(row) for row in state])
