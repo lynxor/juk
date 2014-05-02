@@ -19,7 +19,7 @@ class Player:
 
 	def state(self):
 		with open(self.game_state_file, 'r') as content_file:
-			return content_file.read()
+			return parse_state(content_file.read())
 
 	def move(self):	
 		old_state = self.state()
@@ -35,17 +35,17 @@ class Player:
 			process = subprocess.Popen([ self._exec, self.game_state_file ], stdout=LOG, stderr=LOG)
 			output = process.communicate()[0]
 		else:
-			self.move_interactive(old_state)
+			self.move_interactive(clone_state(old_state))
 
 		os.chdir(prev_path)
 		new_state = self.state()
 		self.fix_state(old_state, new_state)
-		
+
 		self.update_score(old_state, new_state)
 		return new_state
 
 	def move_interactive(self, current_state):
-		print "Your move: (W,A,S,D) "
+		print "Your move: (W,A,S,D  P) "
 		move = str(raw_input()).upper()
 		pos = position("A", current_state)  #AGAIN, always A
 		pill = False
@@ -73,13 +73,14 @@ class Player:
 		y = pos[1]
 
 		if move == "W":
-			new_pos = (x, (y - 1) if y > 0 else HEIGHT - 1) 
+			new_pos = (x, (y - 1) if y > 0 else (HEIGHT - 1)) 
 		elif move == "S":
-			new_pos = (x, (y + 1) if y < HEIGHT - 1 else 0)
+			new_pos = (x, (y + 1) if y < (HEIGHT - 1) else 0)
 		elif move == "A":
-			new_pos = (x - 1 if x > 0 else WIDTH -1, y) 
+			new_pos = (x - 1 if x > 0 else (WIDTH - 1), y) 
 		elif move == "D":
-			new_pos = (x + 1 if x < WIDTH -1 else 0, y)
+			new_pos = (x + 1 if x < (WIDTH - 1) else 0, y)
+			# print "D == " +str(pos)+ " "+ str(new_pos)
 		return new_pos
 
 	# intended for pos processing PERSISTENT
@@ -87,10 +88,10 @@ class Player:
 	# (also use for interactive)
 	def fix_state(self, old_state, new_state):
 		fixed_state = new_state
-
 		apos = position("A", new_state)
 		bpos = position("B", old_state)
 
+		print "fix_state " + str(apos) + " " + str(bpos) + str(old_state == new_state)
 		pill = value_at(apos, old_state) == '!'
 
 		if apos == bpos:
@@ -119,12 +120,12 @@ class Player:
 		# print "UPDATING SCORES "+ self.id+ " " +old_state + new_state
 
 		#NB ALWAYS LOOK FOR A - player is always A
-		newidx = index("A", new_state) 
-		if old_state[newidx] ==  PILL:
+		pos = position("A", new_state) 
+		if value_at(pos, old_state) ==  PILL:
 			self.score += 1
 			self.score_unchanged = 0
 
-		elif old_state[newidx] ==  BONUS_PILL:
+		elif value_at(pos, old_state) ==  BONUS_PILL:
 			self.score += 10
 			self.score_unchanged = 0
 		else:
@@ -132,23 +133,18 @@ class Player:
 
 
 	def write_state(self, status):
-		print self.game_state_file
+		# print self.game_state_file
 		with open(self.game_state_file, "w") as the_file:
-			the_file.write(str(status))
+			the_file.write( serialize_state(status) )
 
 
 class Game:
 
-	def __init__(self, playerA, playerB, initial):
+	def __init__(self, playerA, playerB, initial_state_string):
 		self.playerA = playerA
 		self.playerB = playerB
-		self.initial = initial
-		self.playerA.write_state(initial)
-
-	def swop_symbols(self, state):
-		state = state.replace("A", "C")
-		state = state.replace("B", "A")
-		return state.replace("C", "B")
+		self.initial = parse_state(initial_state_string)
+		self.playerA.write_state(self.initial)
 
 	def game_over(self, state):
 		return (not has_pill(state)) or (self.playerA.score_unchanged >= MAX_IDLE_MOVES and self.playerB.score_unchanged >= MAX_IDLE_MOVES)
@@ -166,15 +162,15 @@ class Game:
 
 	def start(self):
 		# for a in range(1):
-		print "Initial State\n" + self.initial
+		print "Initial State\n" + serialize_state(self.initial)
 		while True:
 			if self.game_over(self.playerA.state()):
 				break
 
 			self.playerA.move()
 			self.playerB.write_state( 
-				self.swop_symbols( self.playerA.state() ) )
-			print "\nMoved player A \n" + self.playerA.state() 
+				swop_symbols( self.playerA.state() ) )
+			print "\nMoved player A \n" + serialize_state(self.playerA.state()) 
 			self.print_score()
 
 			if self.game_over(self.playerB.state()):
@@ -182,8 +178,8 @@ class Game:
 			
 			self.playerB.move()
 			self.playerA.write_state( 
-				self.swop_symbols(self.playerB.state() ) )
-			print "\nMoved player B \n" + self.playerA.state() 
+				swop_symbols(self.playerB.state() ) )
+			print "\nMoved player B \n" + serialize_state(self.playerA.state())
 			self.print_score()
 
 		winner = self.winner()

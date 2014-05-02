@@ -8,31 +8,46 @@ WALL = "#"
 MAX_IDLE_MOVES = 50
 CENTER_POS = (9,10)
 
-#NBNBNBNB Remember to add 1 to index calculations because of \n 
+def parse_state(state_string):
+	# print(list(state_string))
+	return [list(row) for row in state_string.split("\r\n")]  #WTF windows \r\n
 
+def serialize_state(state):
+	return "\r\n".join(["".join(row) for row in state])
 
 def position(playerId, state):
-	return pos_from_index(index(playerId, state))
-
-def index(playerId, state):
-	return state.index(playerId)
-	
-def pos_from_index(index):
-	print "index is " + str(index)
-	x = index % (WIDTH + 1)
-	y = index / (WIDTH + 1)
-	return (x,y)
-
-def ind_from_pos(pos):
-	return pos[1] * (WIDTH  + 1) + pos[0]
+	for (n, row) in enumerate(state):
+		if playerId in row:
+			return (row.index(playerId), n) 		
 
 def has_pill(state):
-	return "." in state or "*" in state
+	flat_state = flatten(state)
+	return "." in flat_state or "*" in flat_state
 
 def value_at(pos, state):
-	return state[ind_from_pos(pos)]
+	x = pos[0]
+	y = pos[1]
+
+	return state[y][x]
 
 def set_value(pos, value, state):
-	l_state = list(state)
-	l_state[ind_from_pos(pos)] = value
-	return "".join(l_state)
+	# print "SETTING VALUE" + str(value) + " st " +str(state)
+	x = pos[0]
+	y = pos[1]
+	state[y][x] = value
+	return state
+
+def flatten(state):
+	return [item for sublist in state for item in sublist]
+
+def swop_symbols(state):
+	apos = position("A", state)
+	bpos = position("B", state)
+
+	set_value(apos, "B", state)
+	set_value(bpos, "A", state)
+	return state
+
+def clone_state(state):
+	return [list(row) for row in state]
+
