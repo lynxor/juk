@@ -4,6 +4,7 @@ from os.path import isfile, join, walk
 import subprocess
 import tempfile
 from helpers import *
+import sys
 
 class Player:
 	def __init__(self, id, folder, interactive=False):
@@ -13,7 +14,7 @@ class Player:
 		self.game_state_file = join(folder, "game.state")
 		self._exec = "./run"
 		self.score = 0
-		self.has_pill = True  # keep track of the pill? Maybe later
+		self.has_pill = True  
 		self.score_unchanged = 0
 		self.interactive = interactive
 
@@ -34,6 +35,11 @@ class Player:
 		if not self.interactive:
 			process = subprocess.Popen([ self._exec, self.game_state_file ], stdout=LOG, stderr=LOG)
 			output = process.communicate()[0]
+			
+			if process.returncode != 0:
+				print str(output)
+				sys.exit("Client error")
+
 		else:
 			self.move_interactive(clone_state(old_state))
 
@@ -44,9 +50,21 @@ class Player:
 		self.update_score(old_state, new_state)
 		return new_state
 
+	def valid_input(self, move):
+		if len(move) == 0:
+			print "No input"
+			return False
+		elif move[0] not in ["W","A","S", "D", "P"]:
+			print "Invalid move"
+			return False
+		return True
+
 	def move_interactive(self, current_state):
 		print "Your move: (W,A,S,D  P) "
-		move = str(raw_input()).upper()
+		inp = raw_input()
+		move = str(inp).upper()
+		if not self.valid_input(move):
+			return self.move_interactive(current_state)
 		pos = position("A", current_state)  #AGAIN, always A
 		pill = False
 		
@@ -155,7 +173,7 @@ class Game:
 		elif self.playerB > self.playerA.score:
 			return self.playerB.id
 		else:
-			return None;
+			return None
 
 	def print_score(self):
 		print "\n********** Scores: A - " + str(self.playerA.score) + "| B - " + str(self.playerB.score) + " *******\n\n\n"
