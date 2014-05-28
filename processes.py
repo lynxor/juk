@@ -56,7 +56,13 @@ class Player:
 		if len(move) == 0:
 			print "No input"
 			return False
-		elif move[0] not in ["W","A","S", "D", "P"]:
+		elif len(move) == 2 and ( move[0] != 'P' or move[1] not in ["W", "A", "S", "D"] ):
+			print "Invalid move"
+			return False
+		elif len(move) == 1 and move[0] not in ["W","A","S","D"]:
+			print "Invalid move"
+			return False
+		elif len(move) > 2:
 			print "Invalid move"
 			return False
 		return True
@@ -64,7 +70,7 @@ class Player:
 	def move_interactive(self, current_state):
 		print "Your move: (W,A,S,D  P) "
 		inp = raw_input()
-		move = str(inp).upper()
+		move = str(inp).upper().strip()
 		if not self.valid_input(move):
 			return self.move_interactive(current_state)
 		pos = position("A", current_state)  #AGAIN, always A
