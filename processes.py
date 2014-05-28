@@ -10,7 +10,8 @@ class Player:
 	def __init__(self, id, folder, interactive=False):
 		self.id = id
 		self.folder = folder
-		self.log = join(folder, "out.log")
+		self.outlog = join(folder, "out.log")
+		self.errlog = join(folder, "err.log")
 		self.game_state_file = join(folder, "game.state")
 		self._exec = "./run"
 		self.score = 0
@@ -24,7 +25,8 @@ class Player:
 
 	def move(self):	
 		old_state = self.state()
-		LOG = open(self.log, 'w')
+		OLOG = open(self.outlog, 'w')
+		ELOG = open(self.errlog, 'w')
 		prev_path = os.getcwd()
 
 		#make the move
@@ -33,7 +35,7 @@ class Player:
 		# print self.game_state_file
 		# process = subprocess.Popen(["bash", "-c", self._exec +" "+ self.game_state_file ], stdout=LOG, stderr=LOG)
 		if not self.interactive:
-			process = subprocess.Popen([ self._exec, self.game_state_file ], stdout=LOG, stderr=LOG)
+			process = subprocess.Popen([ self._exec, self.game_state_file ], stdout=OLOG, stderr=ELOG)
 			output = process.communicate()[0]
 			
 			if process.returncode != 0:
